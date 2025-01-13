@@ -32,7 +32,7 @@ global:
 server:
   port: 9000
   servlet:
-    contextPath: /
+    contextPath: /actuator/health
 
 service:
   annotations: {}

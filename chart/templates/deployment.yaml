@@ -18,18 +18,7 @@ spec:
       labels:
         app.kubernetes.io/name: {{ include "chart.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
-        {{- if .Values.podLabels }}
-          {{ toYaml .Values.podLabels | indent 8 }}
-        {{- end }}
-      annotations:
-        {{- if .Values.podAnnotations }}
-          {{ toYaml .Values.podAnnotations | indent 8 }}
-        {{- end }}
     spec:
-      {{- if .Values.hostAliases }}
-        hostAliases:
-          {{ toYaml .Values.hostAliases | nindent 8 }}
-      {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -49,8 +38,6 @@ spec:
               value: "{{ .Values.jmx.port }}"
             - name: HOST
               value: "{{ .Values.host }}"
-            - name: SERVER_SERVLET_CONTEXTPATH
-              value: "{{ .Values.server.servlet.contextPath | trimSuffix "/" }}"
             - name: KAFKA_PROPERTIES_FILE
               value: "{{ .Values.kafka.propertiesFile }}"
             - name: KAFKA_TRUSTSTORE_FILE
@@ -59,26 +46,20 @@ spec:
               value: "{{ .Values.kafka.keystoreFile }}"
             - name: SERVER_PORT
               value: "{{ .Values.server.port }}"
-            - name: CMD_ARGS
-              {{- if .Values.mountProtoDesc.enabled }}
-              value: "--message.format=PROTOBUF --protobufdesc.directory=/protodesc/ {{ .Values.cmdArgs }}"
-              {{- else }}
-              value: "{{ .Values.cmdArgs }}"
-              {{- end }}
           ports:
             - name: http
               containerPort: 9000
               protocol: TCP
           livenessProbe:
             httpGet:
-              path: "{{ .Values.server.servlet.contextPath | trimSuffix "/" }}/actuator/health"
+              path: {{ .Values.server.servlet.contextPath }}
               port: http
             initialDelaySeconds: 180
             periodSeconds: 30
             timeoutSeconds: 10
           readinessProbe:
             httpGet:
-              path: "{{ .Values.server.servlet.contextPath | trimSuffix "/" }}/actuator/health"
+              path: {{ .Values.server.servlet.contextPath }}
               port: http
             initialDelaySeconds: 20
             periodSeconds: 5
